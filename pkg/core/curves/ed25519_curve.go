@@ -27,7 +27,7 @@ type ScalarEd25519 struct {
 }
 
 type PointEd25519 struct {
-	value *edwards25519.Point
+	Value *edwards25519.Point
 }
 
 var scOne, _ = edwards25519.NewScalar().SetCanonicalBytes([]byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
@@ -379,13 +379,13 @@ func (p *PointEd25519) Hash(bytes []byte) Point {
 
 func (p *PointEd25519) Identity() Point {
 	return &PointEd25519{
-		value: edwards25519.NewIdentityPoint(),
+		Value: edwards25519.NewIdentityPoint(),
 	}
 }
 
 func (p *PointEd25519) Generator() Point {
 	return &PointEd25519{
-		value: edwards25519.NewGeneratorPoint(),
+		Value: edwards25519.NewGeneratorPoint(),
 	}
 }
 
@@ -404,7 +404,7 @@ func (p *PointEd25519) IsOnCurve() bool {
 }
 
 func (p *PointEd25519) Double() Point {
-	return &PointEd25519{value: edwards25519.NewIdentityPoint().Add(p.value, p.value)}
+	return &PointEd25519{Value: edwards25519.NewIdentityPoint().Add(p.Value, p.Value)}
 }
 
 func (p *PointEd25519) Scalar() Scalar {
@@ -412,7 +412,7 @@ func (p *PointEd25519) Scalar() Scalar {
 }
 
 func (p *PointEd25519) Neg() Point {
-	return &PointEd25519{value: edwards25519.NewIdentityPoint().Negate(p.value)}
+	return &PointEd25519{Value: edwards25519.NewIdentityPoint().Negate(p.Value)}
 }
 
 func (p *PointEd25519) Add(rhs Point) Point {
@@ -421,7 +421,7 @@ func (p *PointEd25519) Add(rhs Point) Point {
 	}
 	r, ok := rhs.(*PointEd25519)
 	if ok {
-		return &PointEd25519{value: edwards25519.NewIdentityPoint().Add(p.value, r.value)}
+		return &PointEd25519{Value: edwards25519.NewIdentityPoint().Add(p.Value, r.Value)}
 	} else {
 		return nil
 	}
@@ -433,8 +433,8 @@ func (p *PointEd25519) Sub(rhs Point) Point {
 	}
 	r, ok := rhs.(*PointEd25519)
 	if ok {
-		rTmp := edwards25519.NewIdentityPoint().Negate(r.value)
-		return &PointEd25519{value: edwards25519.NewIdentityPoint().Add(p.value, rTmp)}
+		rTmp := edwards25519.NewIdentityPoint().Negate(r.Value)
+		return &PointEd25519{Value: edwards25519.NewIdentityPoint().Add(p.Value, rTmp)}
 	} else {
 		return nil
 	}
@@ -446,7 +446,7 @@ func (p *PointEd25519) Mul(rhs Scalar) Point {
 	}
 	r, ok := rhs.(*ScalarEd25519)
 	if ok {
-		value := edwards25519.NewIdentityPoint().ScalarMult(r.value, p.value)
+		value := edwards25519.NewIdentityPoint().ScalarMult(r.value, p.Value)
 		return &PointEd25519{value}
 	} else {
 		return nil
@@ -475,7 +475,7 @@ func (p *PointEd25519) Equal(rhs Point) bool {
 		// coordinates (x, y) and (x', y'), which requires two inversions.
 		// We have that X = xZ and X' = x'Z'. Thus, x = x' is equivalent to
 		// (xZ)Z' = (x'Z')Z, and similarly for the y-coordinate.
-		return p.value.Equal(r.value) == 1
+		return p.Value.Equal(r.Value) == 1
 		//lhs1 := new(ed.FieldElement).Mul(&p.value.X, &r.value.Z)
 		//rhs1 := new(ed.FieldElement).Mul(&r.value.X, &p.value.Z)
 		//lhs2 := new(ed.FieldElement).Mul(&p.value.Y, &r.value.Z)
@@ -559,11 +559,11 @@ func cselect(v, a, b *ed.FieldElement, cond bool) *ed.FieldElement {
 }
 
 func (p *PointEd25519) ToAffineCompressed() []byte {
-	return p.value.Bytes()
+	return p.Value.Bytes()
 }
 
 func (p *PointEd25519) ToAffineUncompressed() []byte {
-	x, y, z, _ := p.value.ExtendedCoordinates()
+	x, y, z, _ := p.Value.ExtendedCoordinates()
 	recip := new(field.Element).Invert(z)
 	x.Multiply(x, recip)
 	y.Multiply(y, recip)
@@ -578,7 +578,7 @@ func (p *PointEd25519) FromAffineCompressed(inBytes []byte) (Point, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PointEd25519{value: pt}, nil
+	return &PointEd25519{Value: pt}, nil
 }
 
 func (p *PointEd25519) FromAffineUncompressed(inBytes []byte) (Point, error) {
@@ -586,7 +586,7 @@ func (p *PointEd25519) FromAffineUncompressed(inBytes []byte) (Point, error) {
 		return nil, fmt.Errorf("invalid byte sequence")
 	}
 	if bytes.Equal(inBytes, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
-		return &PointEd25519{value: edwards25519.NewIdentityPoint()}, nil
+		return &PointEd25519{Value: edwards25519.NewIdentityPoint()}, nil
 	}
 	x, err := new(field.Element).SetBytes(inBytes[:32])
 	if err != nil {
@@ -624,10 +624,10 @@ func (p *PointEd25519) SumOfProducts(points []Point, scalars []Scalar) Point {
 		if !ok {
 			return nil
 		}
-		nPoints[i] = pp.value
+		nPoints[i] = pp.Value
 	}
 	pt := edwards25519.NewIdentityPoint().MultiScalarMult(nScalars, nPoints)
-	return &PointEd25519{value: pt}
+	return &PointEd25519{Value: pt}
 }
 
 func (p *PointEd25519) VarTimeDoubleScalarBaseMult(a Scalar, A Point, b Scalar) Point {
@@ -643,7 +643,7 @@ func (p *PointEd25519) VarTimeDoubleScalarBaseMult(a Scalar, A Point, b Scalar) 
 	if !ok {
 		return nil
 	}
-	value := edwards25519.NewIdentityPoint().VarTimeDoubleScalarBaseMult(aa.value, AA.value, bb.value)
+	value := edwards25519.NewIdentityPoint().VarTimeDoubleScalarBaseMult(aa.value, AA.Value, bb.value)
 	return &PointEd25519{value}
 }
 
@@ -660,7 +660,7 @@ func (p *PointEd25519) UnmarshalBinary(input []byte) error {
 	if !ok {
 		return fmt.Errorf("invalid point")
 	}
-	p.value = ppt.value
+	p.Value = ppt.Value
 	return nil
 }
 
@@ -677,7 +677,7 @@ func (p *PointEd25519) UnmarshalText(input []byte) error {
 	if !ok {
 		return fmt.Errorf("invalid point")
 	}
-	p.value = ppt.value
+	p.Value = ppt.Value
 	return nil
 }
 
@@ -694,16 +694,16 @@ func (p *PointEd25519) UnmarshalJSON(input []byte) error {
 	if !ok {
 		return fmt.Errorf("invalid type")
 	}
-	p.value = P.value
+	p.Value = P.Value
 	return nil
 }
 
 func (p *PointEd25519) GetEdwardsPoint() *edwards25519.Point {
-	return edwards25519.NewIdentityPoint().Set(p.value)
+	return edwards25519.NewIdentityPoint().Set(p.Value)
 }
 
 func (p *PointEd25519) SetEdwardsPoint(pt *edwards25519.Point) *PointEd25519 {
-	return &PointEd25519{value: edwards25519.NewIdentityPoint().Set(pt)}
+	return &PointEd25519{Value: edwards25519.NewIdentityPoint().Set(pt)}
 }
 
 // Attempt to convert to an `EdwardsPoint`, using the supplied
@@ -742,7 +742,7 @@ func toEdwards(u *ed.FieldElement, sign byte) *PointEd25519 {
 		return nil
 	}
 	pt.MultByCofactor(pt)
-	return &PointEd25519{value: pt}
+	return &PointEd25519{Value: pt}
 }
 
 // Perform the Elligator2 mapping to a Montgomery point encoded as a 32 byte value
